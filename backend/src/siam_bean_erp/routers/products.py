@@ -11,7 +11,11 @@ from siam_bean_erp.schemas import Money, check_money
 
 router = APIRouter(prefix="/api/products", tags=["products"])
 
-COLUMNS = "id, sku, name, unit, cost, price, reorder_level, active"
+SELECT = (
+    "select p.id, p.sku, p.name, p.unit, p.cost, p.price, p.reorder_level, p.active,"
+    " s.on_hand, (s.on_hand < p.reorder_level) as low_stock"
+    " from products p join product_stock s on s.product_id = p.id"
+)
 
 
 class ProductOut(BaseModel):
@@ -23,6 +27,8 @@ class ProductOut(BaseModel):
     price: Money
     reorder_level: int
     active: bool
+    on_hand: int
+    low_stock: bool
 
 
 def _sku(value: str) -> str:
@@ -118,14 +124,13 @@ class ProductUpdate(BaseModel):
 @router.get("", response_model=list[ProductOut])
 def list_products(conn: Conn, _: User, active: bool | None = None) -> list[dict]:
     return conn.execute(
-        f"select {COLUMNS} from products where (%s::boolean is null or active = %s) order by sku",
-        (active, active),
+        f"{SELECT} where (%s::boolean is null or p.active = %s) order by p.sku", (active, active)
     ).fetchall()
 
 
 @router.get("/{product_id}", response_model=ProductOut)
 def get_product(product_id: UUID, conn: Conn, _: User) -> dict:
-    product = conn.execute(f"select {COLUMNS} from products where id = %s", (product_id,)).fetchone()
+    product = conn.execute(f"{SELECT} where p.id = %s", (product_id,)).fetchone()
     if product is None:
         raise HTTPException(404, "Product not found")
     return product
@@ -135,13 +140,14 @@ def get_product(product_id: UUID, conn: Conn, _: User) -> dict:
 def create_product(body: ProductCreate, conn: Conn) -> dict:
     try:
         with conn.transaction():
-            return conn.execute(
-                f"insert into products (sku, name, unit, cost, price, reorder_level)"
-                f" values (%s, %s, %s, %s, %s, %s) returning {COLUMNS}",
+            created = conn.execute(
+                "insert into products (sku, name, unit, cost, price, reorder_level)"
+                " values (%s, %s, %s, %s, %s, %s) returning id",
                 (body.sku, body.name, body.unit, body.cost, body.price, body.reorder_level),
             ).fetchone()
     except psycopg.errors.UniqueViolation:
         raise HTTPException(409, "SKU already exists") from None
+    return conn.execute(f"{SELECT} where p.id = %s", (created["id"],)).fetchone()
 
 
 @router.patch("/{product_id}", response_model=ProductOut, dependencies=[require_roles("admin")])
@@ -152,10 +158,11 @@ def update_product(product_id: UUID, body: ProductUpdate, conn: Conn) -> dict:
     if body.sku is not None and body.sku != current["sku"]:
         raise HTTPException(422, "SKU cannot be changed")
     with conn.transaction():
-        return conn.execute(
-            f"update products set name = coalesce(%s, name), unit = coalesce(%s, unit),"
-            f" cost = coalesce(%s, cost), price = coalesce(%s, price),"
-            f" reorder_level = coalesce(%s, reorder_level), active = coalesce(%s, active)"
-            f" where id = %s returning {COLUMNS}",
+        conn.execute(
+            "update products set name = coalesce(%s, name), unit = coalesce(%s, unit),"
+            " cost = coalesce(%s, cost), price = coalesce(%s, price),"
+            " reorder_level = coalesce(%s, reorder_level), active = coalesce(%s, active)"
+            " where id = %s",
             (body.name, body.unit, body.cost, body.price, body.reorder_level, body.active, product_id),
-        ).fetchone()
+        )
+    return conn.execute(f"{SELECT} where p.id = %s", (product_id,)).fetchone()

@@ -49,3 +49,8 @@ def install_error_handlers(app: FastAPI) -> None:
     @app.exception_handler(RequestValidationError)
     async def validation_error(_: Request, exc: RequestValidationError) -> JSONResponse:
         return JSONResponse(status_code=422, content={"detail": humanize(exc.errors()[0])})
+
+
+def db_message(error: Exception) -> str:
+    """The plain sentence a database function raised with RAISE EXCEPTION."""
+    return error.diag.message_primary or "Something went wrong"

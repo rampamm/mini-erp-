@@ -27,6 +27,8 @@ DEMO_CUSTOMERS = [
     ("Sukhumvit Corner Café", "0105563000033", "15 days"),
 ]
 
+OPENING_STOCK = {"ARB-1KG": 170, "ROB-1KG": 35, "BLD-1KG": 90, "DRP-10": 240}
+
 
 def seed(conn: psycopg.Connection) -> None:
     password_hash = hash_password(DEMO_PASSWORD)
@@ -47,6 +49,14 @@ def seed(conn: psycopg.Connection) -> None:
             "insert into customers (name, tax_id, payment_terms)"
             " select %s, %s, %s where not exists (select 1 from customers where tax_id = %s)",
             (name, tax_id, payment_terms, tax_id),
+        )
+    for sku, quantity in OPENING_STOCK.items():
+        conn.execute(
+            "insert into stock_movements (product_id, movement_type, quantity, reason, user_id)"
+            " select p.id, 'stock_in', %s, 'Opening stock', u.id from products p, profiles u"
+            " where p.sku = %s and u.email = 'lek@siambean.test'"
+            " and not exists (select 1 from stock_movements m where m.product_id = p.id and m.reason = 'Opening stock')",
+            (quantity, sku),
         )
 
 
