@@ -8,6 +8,7 @@ from siam_bean_erp.errors import install_error_handlers
 from siam_bean_erp.routers import (
     auth,
     customers,
+    dashboard,
     invoices,
     orders,
     products,
@@ -33,4 +34,5 @@ def create_app() -> FastAPI:
     app.include_router(orders.router)
     app.include_router(invoices.router)
     app.include_router(invoices.accounting)
+    app.include_router(dashboard.router)
     return app
