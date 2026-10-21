@@ -1,0 +1,23 @@
+.env
+.env.*
+!.env.example
+.DS_Store
+
+# Python
+.venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+.ruff_cache/
+
+# Node
+node_modules/
+dist/
+playwright-report/
+test-results/
+
+# Cloudflare
+.wrangler/
+
+# Local agent settings
+.claude/settings.local.json
