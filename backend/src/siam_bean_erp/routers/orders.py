@@ -8,6 +8,7 @@ from fastapi import APIRouter, HTTPException, Response
 from pydantic import BaseModel, field_validator
 
 from siam_bean_erp.deps import Conn, require_roles
+from siam_bean_erp.errors import db_message
 from siam_bean_erp.schemas import Money
 
 router = APIRouter(prefix="/api/orders", tags=["orders"], dependencies=[require_roles("admin", "sales")])
@@ -203,3 +204,14 @@ def delete_draft(order_id: UUID, conn: Conn) -> Response:
         _require_draft(conn, order_id)
         conn.execute("delete from sales_orders where id = %s", (order_id,))
     return Response(status_code=204)
+
+
+@router.post("/{order_id}/confirm", response_model=OrderOut)
+def confirm_order(order_id: UUID, conn: Conn, user: Seller) -> dict:
+    try:
+        with conn.transaction():
+            conn.execute("select confirm_sales_order(%s, %s)", (order_id, user["id"]))
+    except psycopg.errors.RaiseException as error:
+        message = db_message(error)
+        raise HTTPException(404 if message == "Order not found" else 409, message) from None
+    return load_order(conn, order_id)
