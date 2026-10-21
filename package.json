@@ -1,0 +1,5 @@
+{
+  "name": "siam-bean-erp",
+  "private": true,
+  "workspaces": ["frontend"]
+}

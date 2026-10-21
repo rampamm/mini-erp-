@@ -1,0 +1,33 @@
+[project]
+name = "siam-bean-erp"
+version = "0.1.0"
+description = "Mini ERP for Siam Bean Co."
+authors = [
+    { name = "Prashil", email = "prashustha7@gmail.com" }
+]
+requires-python = ">=3.12"
+dependencies = [
+    "fastapi>=0.156.8",
+    "psycopg[binary]>=3.3.6",
+    "pydantic-settings>=2.16.1",
+    "pyjwt>=2.15.1",
+    "uvicorn[standard]>=0.54.0",
+]
+
+[project.scripts]
+siam-bean-erp = "siam_bean_erp:main"
+
+[build-system]
+requires = ["uv_build>=0.12.5,<0.13.0"]
+build-backend = "uv_build"
+
+[dependency-groups]
+dev = [
+    "httpx>=0.28.1",
+    "pytest>=9.1.1",
+    "ruff>=0.17.1",
+]
+
+[tool.pytest.ini_options]
+pythonpath = ["src"]
+testpaths = ["tests"]
