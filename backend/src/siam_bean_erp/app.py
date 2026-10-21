@@ -4,6 +4,7 @@ import psycopg
 from fastapi import Depends, FastAPI
 
 from siam_bean_erp.db import get_conn
+from siam_bean_erp.routers import auth, users
 
 
 def create_app() -> FastAPI:
@@ -14,4 +15,6 @@ def create_app() -> FastAPI:
         conn.execute("select 1")
         return {"status": "ok", "db": "ok"}
 
+    app.include_router(auth.router)
+    app.include_router(users.router)
     return app
