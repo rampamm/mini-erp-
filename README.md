@@ -55,6 +55,7 @@ erDiagram
     profiles ||--o{ stock_movements : "records"
     profiles ||--o{ sales_orders : "creates"
     profiles ||--o{ payments : "records"
+    profiles ||--o{ invoices : "issues"
     products ||--o{ stock_movements : "has"
     products ||--o{ sales_order_lines : "ordered in"
     products ||--o{ invoice_lines : "sold on"
