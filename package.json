@@ -1,5 +1,12 @@
 {
   "name": "siam-bean-erp",
   "private": true,
-  "workspaces": ["frontend"]
+  "workspaces": ["frontend"],
+  "scripts": {
+    "db": "docker compose up -d --wait",
+    "migrate": "cd backend && PYTHONPATH=src uv run python -m siam_bean_erp.migrate",
+    "dev:backend": "cd backend && PYTHONPATH=src uv run uvicorn siam_bean_erp.app:create_app --factory --reload --port 8000",
+    "dev:frontend": "npm run dev --workspace frontend",
+    "test": "cd backend && uv run pytest -q"
+  }
 }
