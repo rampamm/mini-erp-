@@ -69,3 +69,9 @@ def auth(make_user):
         return {"Authorization": f"Bearer {create_token(make_user(role)['id'])}"}
 
     return _auth
+
+
+@pytest.fixture
+def h(auth):
+    """Auth headers for one fresh user per role, e.g. h['sales']."""
+    return {role: auth(role) for role in ROLES}
