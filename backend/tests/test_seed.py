@@ -36,3 +36,15 @@ def test_seeding_loads_the_four_sample_products_from_the_scenario(conn):
         "Arabica, 1 kg bag", "kg", 320, 450,
     )
     assert by_sku["DRP-10"]["reorder_level"] == 100
+
+
+def test_seeding_loads_the_three_sample_customers_once(conn):
+    seed(conn)
+    seed(conn)
+
+    rows = conn.execute("select name, tax_id, payment_terms from customers order by name").fetchall()
+    assert [(r["name"], r["tax_id"], r["payment_terms"]) for r in rows] == [
+        ("Brew Lab Ari", "0105562000022", "Cash"),
+        ("Café Lune", "0105561000011", "30 days"),
+        ("Sukhumvit Corner Café", "0105563000033", "15 days"),
+    ]

@@ -21,6 +21,12 @@ DEMO_PRODUCTS = [
     ("DRP-10", "Drip bags, box of 10", "box", 90, 150, 100),
 ]
 
+DEMO_CUSTOMERS = [
+    ("Café Lune", "0105561000011", "30 days"),
+    ("Brew Lab Ari", "0105562000022", "Cash"),
+    ("Sukhumvit Corner Café", "0105563000033", "15 days"),
+]
+
 
 def seed(conn: psycopg.Connection) -> None:
     password_hash = hash_password(DEMO_PASSWORD)
@@ -35,6 +41,12 @@ def seed(conn: psycopg.Connection) -> None:
             "insert into products (sku, name, unit, cost, price, reorder_level)"
             " values (%s, %s, %s, %s, %s, %s) on conflict (sku) do nothing",
             (sku, name, unit, cost, price, reorder_level),
+        )
+    for name, tax_id, payment_terms in DEMO_CUSTOMERS:
+        conn.execute(
+            "insert into customers (name, tax_id, payment_terms)"
+            " select %s, %s, %s where not exists (select 1 from customers where tax_id = %s)",
+            (name, tax_id, payment_terms, tax_id),
         )
 
 
