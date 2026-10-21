@@ -4,11 +4,13 @@ import psycopg
 from fastapi import Depends, FastAPI
 
 from siam_bean_erp.db import get_conn
+from siam_bean_erp.errors import install_error_handlers
 from siam_bean_erp.routers import auth, users
 
 
 def create_app() -> FastAPI:
     app = FastAPI(title="Siam Bean ERP")
+    install_error_handlers(app)
 
     @app.get("/api/health")
     def health(conn: Annotated[psycopg.Connection, Depends(get_conn)]) -> dict[str, str]:
