@@ -1,7 +1,8 @@
 import type { ReactElement } from 'react'
 import { BrowserRouter, Navigate, NavLink, Outlet, Route, Routes } from 'react-router-dom'
 import { AuthProvider, useAuth } from './auth'
-import { Badge, Loading } from './components/ui'
+import { BrandMark, NavIcon } from './components/icons'
+import { Loading } from './components/ui'
 import { roleLabel } from './format'
 import type { Role } from './types'
 import AccessDenied from './pages/AccessDenied'
@@ -20,15 +21,15 @@ import Users from './pages/Users'
 
 const ALL: Role[] = ['admin', 'sales', 'warehouse', 'accountant']
 
-const NAV: { to: string; label: string; roles: Role[] }[] = [
-  { to: '/', label: 'Dashboard', roles: ALL },
-  { to: '/products', label: 'Products', roles: ALL },
-  { to: '/customers', label: 'Customers', roles: ['admin', 'sales', 'accountant'] },
-  { to: '/stock', label: 'Stock', roles: ['admin', 'warehouse'] },
-  { to: '/orders', label: 'Orders', roles: ['admin', 'sales'] },
-  { to: '/invoices', label: 'Invoices', roles: ['admin', 'sales', 'accountant'] },
-  { to: '/accounting', label: 'Accounting', roles: ['admin', 'accountant'] },
-  { to: '/users', label: 'Users', roles: ['admin'] },
+const NAV: { to: string; label: string; icon: string; roles: Role[] }[] = [
+  { to: '/', label: 'Dashboard', icon: 'dashboard', roles: ALL },
+  { to: '/products', label: 'Products', icon: 'products', roles: ALL },
+  { to: '/customers', label: 'Customers', icon: 'customers', roles: ['admin', 'sales', 'accountant'] },
+  { to: '/stock', label: 'Stock', icon: 'stock', roles: ['admin', 'warehouse'] },
+  { to: '/orders', label: 'Orders', icon: 'orders', roles: ['admin', 'sales'] },
+  { to: '/invoices', label: 'Invoices', icon: 'invoices', roles: ['admin', 'sales', 'accountant'] },
+  { to: '/accounting', label: 'Accounting', icon: 'accounting', roles: ['admin', 'accountant'] },
+  { to: '/users', label: 'Users', icon: 'users', roles: ['admin'] },
 ]
 
 function Shell() {
@@ -37,28 +38,37 @@ function Shell() {
   if (!user) return <Navigate to="/login" replace />
 
   return (
-    <>
-      <header className="topbar">
-        <span className="brand">Siam Bean ERP</span>
+    <div className="shell">
+      <aside className="sidebar">
+        <div className="brand">
+          <BrandMark />
+          <span className="brand-name">
+            Siam Bean<small>ERP</small>
+          </span>
+        </div>
         <nav className="nav" aria-label="Main">
           {NAV.filter((item) => item.roles.includes(user.role)).map((item) => (
             <NavLink key={item.to} to={item.to} end={item.to === '/'}>
+              <NavIcon name={item.icon} />
               {item.label}
             </NavLink>
           ))}
         </nav>
         <div className="whoami">
-          <span>{user.full_name}</span>
-          <Badge tone="info">{roleLabel(user.role)}</Badge>
+          <div className="avatar" aria-hidden="true">
+            {user.full_name.trim().split(' ').slice(-1)[0].charAt(0).toUpperCase()}
+          </div>
+          <div className="who">{user.full_name}</div>
+          <div className="role">{roleLabel(user.role)}</div>
           <button className="secondary small" onClick={logout}>
             Log out
           </button>
         </div>
-      </header>
+      </aside>
       <main className="container">
         <Outlet />
       </main>
-    </>
+    </div>
   )
 }
 

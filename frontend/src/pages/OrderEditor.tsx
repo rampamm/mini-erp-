@@ -197,7 +197,7 @@ export default function OrderEditor() {
             <Field label="Quantity">
               <input inputMode="numeric" value={pickQty} onChange={(e) => setPickQty(e.target.value)} />
             </Field>
-            <div>
+            <div className="form-action">
               <button type="button" onClick={addLine}>
                 Add to order
               </button>

@@ -21,10 +21,13 @@ export function Badge({ tone, children }: { tone: 'good' | 'warn' | 'bad' | 'neu
   return <span className={`badge badge-${tone}`}>{children}</span>
 }
 
-export function PageHeader({ title, children }: { title: string; children?: ReactNode }) {
+export function PageHeader({ title, subtitle, children }: { title: string; subtitle?: string; children?: ReactNode }) {
   return (
     <div className="page-header">
-      <h1>{title}</h1>
+      <div>
+        <h1>{title}</h1>
+        {subtitle && <p className="page-subtitle">{subtitle}</p>}
+      </div>
       <div className="page-actions">{children}</div>
     </div>
   )

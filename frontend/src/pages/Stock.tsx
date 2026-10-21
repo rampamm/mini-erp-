@@ -99,7 +99,7 @@ export default function Stock() {
                 <input inputMode="numeric" value={inQty} onChange={(e) => setInQty(e.target.value)} />
               </Field>
               <Field label="Note (optional)">
-                <input value={inNote} onChange={(e) => setInNote(e.target.value)} placeholder="Delivery from Doi Chang Farm" />
+                <input value={inNote} onChange={(e) => setInNote(e.target.value)} placeholder="Supplier delivery" />
               </Field>
             </div>
             <div className="actions">
