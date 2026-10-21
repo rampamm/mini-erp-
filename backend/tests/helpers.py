@@ -50,3 +50,24 @@ def make_order(client, headers, customer, lines):
 
 def confirm(client, headers, order):
     return client.post(f"/api/orders/{order['id']}/confirm", headers=headers)
+
+
+def today_in_bangkok():
+    from datetime import datetime
+    from zoneinfo import ZoneInfo
+
+    return datetime.now(ZoneInfo("Asia/Bangkok")).date()
+
+
+def backdate_due_date(conn, invoice_id, due_date):
+    """Issued invoices are immutable, so a test that needs an old one lifts the guard inside its own transaction."""
+    conn.execute("alter table invoices disable trigger invoices_immutable")
+    conn.execute("update invoices set due_date = %s where id = %s", (due_date, invoice_id))
+    conn.execute("alter table invoices enable trigger invoices_immutable")
+
+
+def pay(client, headers, invoice_id, amount, paid_on=None):
+    body = {"amount": amount}
+    if paid_on:
+        body["paid_on"] = paid_on
+    return client.post(f"/api/invoices/{invoice_id}/payments", json=body, headers=headers)
