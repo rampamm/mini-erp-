@@ -19,6 +19,11 @@ npm run dev:frontend         # app on http://localhost:5173
 
 Open http://localhost:5173 and log in with a demo account below. `npm run reset-db` returns the database to the clean demo state at any time.
 
+## Live site
+
+- **App:** https://siam-bean-erp-web.vercel.app (frontend, works on a phone)
+- **API:** https://siam-bean-erp-api.vercel.app/api/health (backend, database on Supabase)
+
 ## Demo accounts
 
 Every account uses the password `demo1234`. These exist only in the local demo data.
