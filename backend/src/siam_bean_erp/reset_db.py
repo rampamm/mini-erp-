@@ -12,9 +12,13 @@ from siam_bean_erp.migrate import apply_migrations
 from siam_bean_erp.seed import seed
 from siam_bean_erp.settings import get_settings
 
+LOCAL_HOSTS = {"localhost", "127.0.0.1", "::1", ""}
+
 
 def reset_database(url: str) -> None:
     info = conninfo_to_dict(url)
+    if info.get("host", "") not in LOCAL_HOSTS:
+        raise SystemExit("Refusing to reset a database that is not local. This tool drops the whole database.")
     name = info["dbname"]
     maintenance = make_conninfo(url, dbname="postgres")
     with psycopg.connect(maintenance, autocommit=True) as admin:

@@ -11,6 +11,7 @@
     "dev:frontend": "npm run dev --workspace frontend",
     "test": "cd backend && uv run pytest -q",
     "reset-db": "cd backend && PYTHONPATH=src uv run python -m siam_bean_erp.reset_db",
-    "test:e2e": "cd frontend && ../node_modules/.bin/playwright test"
+    "test:e2e": "cd frontend && ../node_modules/.bin/playwright test",
+    "seed": "cd backend && PYTHONPATH=src uv run python -m siam_bean_erp.seed"
   }
 }

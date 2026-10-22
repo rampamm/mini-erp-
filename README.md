@@ -34,7 +34,7 @@ Every account uses the password `demo1234`. These exist only in the local demo d
 ## Tests
 
 ```bash
-npm test          # 199 backend tests against a real Postgres (each test rolls back)
+npm test          # 208 backend tests against a real Postgres (each test rolls back)
 npm run test:e2e  # browser tests of the Café Lune flow (own database and ports)
 ```
 
@@ -108,8 +108,24 @@ Business rules enforced in the database, not only on screen:
 |  |  |  |  |
 |  |  |  |  |
 
-## Before deploying
+## Deploy: Supabase (database) + Vercel (two projects)
 
-- Set `JWT_SECRET` to a long random value; the built-in default is for local development only.
-- Local login (`/api/auth/login`) signs its own tokens. With Supabase Auth, the frontend logs in through Supabase and the same token check applies; set `JWT_SECRET` to the Supabase JWT secret.
-- Never commit `.env`. Copy `.env.example` to `backend/.env` and fill it in.
+The backend (FastAPI) and the frontend (React) are two small Vercel projects from this one repo. Supabase only supplies the Postgres database; login is this app's own `profiles` table, so Supabase Auth and the Supabase API keys are not used.
+
+**1. Supabase: get the pooler connection string.** Project, Connect, "Transaction pooler" (port 6543). It looks like `postgresql://postgres.<ref>:<password>@aws-0-<region>.pooler.supabase.com:6543/postgres`. Use the pooler, not the direct host: Vercel is IPv4-only and the direct host is IPv6.
+
+**2. Build the schema and demo data in Supabase (once, from your laptop).** Put the string in `backend/.env` (git-ignored; the root `.env` is not read):
+
+```
+DATABASE_URL=postgresql://postgres.<ref>:<password>@aws-0-<region>.pooler.supabase.com:6543/postgres
+```
+
+Then `npm run migrate` (applies every file in `backend/migrations/`, including `0008`, which locks the tables away from Supabase's public Data API) and `npm run seed` (demo accounts, products, customers, opening stock). `npm run reset-db` refuses to touch anything that is not local.
+
+**3. Vercel project A, the backend.** Import the repo, set **Root Directory** to `backend`. Add environment variables `DATABASE_URL` (the same pooler string) and `JWT_SECRET` (a long random value, for example from `openssl rand -hex 32`). Deploy. `https://<project>.vercel.app/api/health` should answer `{"status":"ok","db":"ok"}`. The app refuses to start on Vercel without `JWT_SECRET`.
+
+**4. Vercel project B, the frontend.** Edit the backend address in `frontend/vercel.json` (`YOUR-BACKEND-PROJECT`), commit and push. Import the repo again as a second project with **Root Directory** `frontend` (framework: Vite). No environment variables needed: the page calls `/api/...` and Vercel forwards it to project A, so there is no CORS setup.
+
+**5. Check.** Open the frontend URL on a phone outside your network, log in with a demo account, and run the Café Lune flow.
+
+Notes: the demo password (`demo1234`) is public in this README, so change or remove the demo accounts if the site stays online after grading. Never commit `.env`.
